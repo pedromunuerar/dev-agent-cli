@@ -26,7 +26,7 @@ def copy_to_clipboard(text):
 
 def main():
     if len(sys.argv) < 2:
-        print("❌ Uso: dev-agent-context <archivo1> <archivo2> ... <carpeta1>")
+        print("❌ Uso: dev-agent-context <archivo1> o <directorio1> ...")
         sys.exit(1)
 
     output = []
@@ -41,21 +41,26 @@ def main():
             except Exception as e:
                 print(f"⚠️ No se pudo leer el archivo {path}: {e}")
         elif os.path.isdir(path):
-            # Si pasan una carpeta entera, leemos sus archivos ignorando binarios/pesados
-            exclude_dirs = {'.git', '__pycache__', 'node_modules', '.venv', 'venv'}
-            exclude_files = {'.env', '.agent-context.json', '.DS_Store'}
+            exclude_dirs = {'.git', '__pycache__', 'node_modules', '.venv', 'venv', '.cursor', '.vscode', 'dist', 'build'}
+            exclude_files = {'.env', '.env.local', '.env.development', '.env.production', '.DS_Store', '.agent-context.json', '.gitignore'}
+            exclude_extensions = ('.pyc', '.pyo', '.so', '.pkg', '.tar.gz', '.zip')
+            
+            output.append(f"=== DIRECTORIO: {path} ===")
+            dir_files = []
+            
             for root, dirs, files in os.walk(path):
                 dirs[:] = [d for d in dirs if d not in exclude_dirs]
                 for f in files:
-                    if f not in exclude_files:
+                    if f not in exclude_files and not f.endswith(exclude_extensions):
                         full_path = os.path.join(root, f)
-                        try:
-                            with open(full_path, 'r', encoding='utf-8', errors='ignore') as file_obj:
-                                output.append(f"=== ARCHIVO: {full_path} ===")
-                                output.append(file_obj.read())
-                                output.append("=======================\n")
-                        except:
-                            pass
+                        dir_files.append(full_path)
+            
+            if dir_files:
+                for f_path in sorted(dir_files):
+                    output.append(f"- {f_path}")
+            else:
+                output.append("(Directorio vacío o sin archivos válidos)")
+            output.append("===========================\n")
         else:
             print(f"⚠️ Ruta no encontrada: {path}")
 
