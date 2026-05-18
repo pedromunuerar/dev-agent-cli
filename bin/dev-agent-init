@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+import os
+import json
+
+def get_structure(path="."):
+    lines = []
+    exclude_dirs = {'.git', '__pycache__', 'node_modules', '.venv', 'venv', '.cursor', '.vscode', 'dist', 'build'}
+    exclude_files = {'.env', '.env.local', '.env.development', '.env.production', '.DS_Store', '.agent-context.json', '.gitignore'}
+    exclude_extensions = ('.pyc', '.pyo', '.so', '.pkg', '.tar.gz', '.zip')
+
+    for root, dirs, files in os.walk(path):
+        dirs[:] = [d for d in dirs if d not in exclude_dirs]
+        level = root.replace(path, '').count(os.sep)
+        indent = ' ' * 4 * level
+        lines.append(f"{indent}{os.path.basename(root)}/")
+        for f in files:
+            if f not in exclude_files and not f.endswith(exclude_extensions):
+                lines.append(f"{indent}    {f}")
+    return "\n".join(lines)
+
+def main():
+    print("🤖 [Configurando Agente] Escaneando proyecto...")
+    tech = input("¿Tecnologías y lenguajes?: ")
+    rules = input("¿Reglas de estilo o diseño? (opcional): ")
+    
+    # PROMPT AVANZADO DE PROTOCOLO EN DOS PASOS
+    prompt_base = (
+        "Actúa como un agente de desarrollo por línea de comandos.\n"
+        "Analiza la estructura del proyecto y la tarea solicitada.\n\n"
+        "REGLAS DE DECISIÓN:\n"
+        "1. Si necesitas ver el contenido de algún archivo de la estructura para cumplir la tarea con precisión, "
+        "o si tienes dudas sobre la lógica del usuario, DETENTE inmediatamente. Pide los archivos que necesites "
+        "indicando textualmente qué comando debe ejecutar el usuario, por ejemplo: 'dev-agent-context ruta/archivo.ext'. "
+        "También puedes formular preguntas aclaratorias breves.\n"
+        "2. Si tienes toda la información necesaria y no hay dudas, genera ÚNICAMENTE un bloque de código Bash ejecutable. "
+        "No hables, no expliques, no saludes. Solo código Bash.\n\n"
+        "REGLAS DE SCRIPT BASH:\n"
+        "- Para crear o reemplazar archivos usa siempre: cat << 'EOF' > ruta/archivo.ext\n"
+        "- Asegúrate de usar 'mkdir -p' si creas carpetas nuevas antes de escribir los archivos."
+    )
+
+    context = {
+        "prompt_system": prompt_base,
+        "tecnologia": tech,
+        "reglas_estilo": rules,
+        "estructura_directorios": get_structure()
+    }
+    
+    with open(".agent-context.json", "w", encoding="utf-8") as f:
+        json.dump(context, f, indent=4, ensure_ascii=False)
+    
+    print("✅ Archivo .agent-context.json actualizado con el nuevo protocolo de comunicación.")
+
+if __name__ == "__main__":
+    main()

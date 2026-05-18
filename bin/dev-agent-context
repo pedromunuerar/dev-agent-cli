@@ -1,0 +1,77 @@
+#!/usr/bin/env python3
+import os
+import sys
+import subprocess
+import shutil
+
+def copy_to_clipboard(text):
+    if sys.platform == "darwin" and shutil.which("pbcopy"):
+        p = subprocess.Popen(['pbcopy'], stdin=subprocess.PIPE)
+        p.communicate(input=text.encode('utf-8'))
+        return True
+    elif sys.platform.startswith("linux"):
+        if shutil.which("xclip"):
+            p = subprocess.Popen(['xclip', '-selection', 'clipboard'], stdin=subprocess.PIPE)
+            p.communicate(input=text.encode('utf-8'))
+            return True
+        elif shutil.which("xsel"):
+            p = subprocess.Popen(['xsel', '--clipboard', '--input'], stdin=subprocess.PIPE)
+            p.communicate(input=text.encode('utf-8'))
+            return True
+    elif sys.platform == "win32" or shutil.which("clip.exe"):
+        p = subprocess.Popen(['clip.exe'], stdin=subprocess.PIPE)
+        p.communicate(input=text.encode('utf-8'))
+        return True
+    return False
+
+def main():
+    if len(sys.argv) < 2:
+        print("❌ Uso: dev-agent-context <archivo1> <archivo2> ... <carpeta1>")
+        sys.exit(1)
+
+    output = []
+    
+    for path in sys.argv[1:]:
+        if os.path.isfile(path):
+            try:
+                with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+                    output.append(f"=== ARCHIVO: {path} ===")
+                    output.append(f.read())
+                    output.append("=======================\n")
+            except Exception as e:
+                print(f"⚠️ No se pudo leer el archivo {path}: {e}")
+        elif os.path.isdir(path):
+            # Si pasan una carpeta entera, leemos sus archivos ignorando binarios/pesados
+            exclude_dirs = {'.git', '__pycache__', 'node_modules', '.venv', 'venv'}
+            exclude_files = {'.env', '.agent-context.json', '.DS_Store'}
+            for root, dirs, files in os.walk(path):
+                dirs[:] = [d for d in dirs if d not in exclude_dirs]
+                for f in files:
+                    if f not in exclude_files:
+                        full_path = os.path.join(root, f)
+                        try:
+                            with open(full_path, 'r', encoding='utf-8', errors='ignore') as file_obj:
+                                output.append(f"=== ARCHIVO: {full_path} ===")
+                                output.append(file_obj.read())
+                                output.append("=======================\n")
+                        except:
+                            pass
+        else:
+            print(f"⚠️ Ruta no encontrada: {path}")
+
+    full_text = "\n".join(output)
+    
+    if not full_text.strip():
+        print("❌ No se extrajo ningún contenido válido.")
+        sys.exit(1)
+
+    print("📄 CONTENIDO EXTRAÍDO:")
+    print("==================================================")
+    if copy_to_clipboard(full_text):
+        print("📋 ¡Contenido copiado al portapapeles con éxito!")
+    else:
+        print(full_text)
+    print("==================================================")
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,117 @@
+#!/usr/bin/env python3
+import os
+import json
+import sys
+import subprocess
+import shutil
+
+def get_structure(path="."):
+    lines = []
+    exclude_dirs = {'.git', '__pycache__', 'node_modules', '.venv', 'venv', '.cursor', '.vscode', 'dist', 'build'}
+    exclude_files = {'.env', '.env.local', '.env.development', '.env.production', '.DS_Store', '.agent-context.json', '.gitignore'}
+    exclude_extensions = ('.pyc', '.pyo', '.so', '.pkg', '.tar.gz', '.zip')
+
+    for root, dirs, files in os.walk(path):
+        dirs[:] = [d for d in dirs if d not in exclude_dirs]
+        level = root.replace(path, '').count(os.sep)
+        indent = ' ' * 4 * level
+        lines.append(f"{indent}{os.path.basename(root)}/")
+        for f in files:
+            if f not in exclude_files and not f.endswith(exclude_extensions):
+                lines.append(f"{indent}    {f}")
+    return "\n".join(lines)
+
+def copy_to_clipboard(text):
+    # Detectar macOS
+    if sys.platform == "darwin":
+        if shutil.which("pbcopy"):
+            p = subprocess.Popen(['pbcopy'], stdin=subprocess.PIPE)
+            p.communicate(input=text.encode('utf-8'))
+            return True
+    # Detectar Linux
+    elif sys.platform.startswith("linux"):
+        if shutil.which("xclip"):
+            p = subprocess.Popen(['xclip', '-selection', 'clipboard'], stdin=subprocess.PIPE)
+            p.communicate(input=text.encode('utf-8'))
+            return True
+        elif shutil.which("xsel"):
+            p = subprocess.Popen(['xsel', '--clipboard', '--input'], stdin=subprocess.PIPE)
+            p.communicate(input=text.encode('utf-8'))
+            return True
+    # Detectar Windows (WSL / Git Bash)
+    elif sys.platform == "win32" or shutil.which("clip.exe"):
+        p = subprocess.Popen(['clip.exe'], stdin=subprocess.PIPE)
+        p.communicate(input=text.encode('utf-8'))
+        return True
+    return False
+
+def main():
+    if not os.path.exists(".agent-context.json"):
+        print("❌ Error: No existe .agent-context.json. Ejecuta primero dev-agent-init.")
+        sys.exit(1)
+        
+    with open(".agent-context.json", "r", encoding="utf-8") as f:
+        context = json.load(f)
+        
+    context["estructura_directorios"] = get_structure()
+    
+    print("📝 ¿Qué necesitas que haga el agente?")
+    user_task = sys.stdin.read().strip() if not sys.stdin.isatty() else input("> ")
+    
+    if not user_task:
+        print("❌ Petición vacía.")
+        sys.exit(1)
+        
+    full_prompt = (
+        f"{context['prompt_system']}\n\n"
+        f"--- CONTEXTO DEL PROYECTO ---\n"
+        f"Tecnologías: {context['tecnologia']}\n"
+        f"Estructura actual:\n{context['estructura_directorios']}\n"
+        f"-----------------------------\n\n"
+        f"TAREA REQUERIDA:\n{user_task}\n"
+    )
+    
+    print("\n🚀 PROMPT GENERADO:")
+    print("==================================================")
+    
+    if copy_to_clipboard(full_prompt):
+        print("📋 ¡Copiado automáticamente al portapapeles! Ya puedes pegarlo en la IA.")
+    else:
+        print("⚠️  No se encontró pbcopy, xclip o xsel. Por favor, copia el texto manualmente:")
+        print(full_prompt)
+        
+    print("==================================================\n")
+    
+    if not os.path.exists(".git"):
+        print("⚠️ Nota: No se detectó repositorio Git. El código se aplicará directamente.")
+        print("Puedes pegar el código de la IA directamente en esta terminal.")
+        return
+
+    current_branch = subprocess.check_output(["git", "branch", "--show-current"]).decode().strip()
+    
+    print(f"🔀 Creando entorno de pruebas temporal basado en '{current_branch}'...")
+    subprocess.run(["git", "checkout", "-b", "agente-cambios"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    
+    print("\n👉 PEGA AQUÍ EL BLOQUE BASH DE LA IA Y PRESIONA ENTER.")
+    print("👉 CUANDO TERMINE DE EJECUTARSE, ESCRIBE 'exit' Y PRESIONA ENTER PARA VER EL DIFF.\n")
+    
+    shell = os.environ.get("SHELL", "/bin/bash")
+    subprocess.run([shell])
+    
+    print("\n🔍 REVISANDO CAMBIOS GENERADOS:")
+    subprocess.run(["git", "diff", current_branch])
+    
+    ans = input("\n¿Quieres aplicar estos cambios a tu rama principal? (y/n): ").strip().lower()
+    
+    if ans == 'y':
+        subprocess.run(["git", "checkout", current_branch], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["git", "merge", "agente-cambios"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["git", "branch", "-d", "agente-cambios"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print("✅ Cambios integrados con éxito.")
+    else:
+        subprocess.run(["git", "checkout", current_branch], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["git", "branch", "-D", "agente-cambios"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print("🗑️ Cambios descartados. Tu proyecto sigue intacto.")
+
+if __name__ == "__main__":
+    main()
