@@ -2,50 +2,14 @@
 import os
 import json
 
-def count_total_files(path="."):
-    exclude_dirs = {'.git', '__pycache__', 'node_modules', '.venv', 'venv', '.cursor', '.vscode', 'dist', 'build'}
-    exclude_files = {'.env', '.env.local', '.env.development', '.env.production', '.DS_Store', '.agent-context.json', '.gitignore'}
-    exclude_extensions = ('.pyc', '.pyo', '.so', '.pkg', '.tar.gz', '.zip')
-    
-    total = 0
-    for root, dirs, files in os.walk(path):
-        dirs[:] = [d for d in dirs if d not in exclude_dirs]
-        for f in files:
-            if f not in exclude_files and not f.endswith(exclude_extensions):
-                total += 1
-    return total
 
-def get_structure(path=".", only_dirs=False):
-    lines = []
-    exclude_dirs = {'.git', '__pycache__', 'node_modules', '.venv', 'venv', '.cursor', '.vscode', 'dist', 'build'}
-    exclude_files = {'.env', '.env.local', '.env.development', '.env.production', '.DS_Store', '.agent-context.json', '.gitignore'}
-    exclude_extensions = ('.pyc', '.pyo', '.so', '.pkg', '.tar.gz', '.zip')
-
-    for root, dirs, files in os.walk(path):
-        dirs[:] = [d for d in dirs if d not in exclude_dirs]
-        level = root.replace(path, '').count(os.sep)
-        indent = ' ' * 4 * level
-        lines.append(f"{indent}{os.path.basename(root)}/")
-        
-        if not only_dirs:
-            for f in files:
-                if f not in exclude_files and not f.endswith(exclude_extensions):
-                    lines.append(f"{indent}    {f}")
-    return "\n".join(lines)
 
 def main():
     print("🤖 [Configurando Agente] Escaneando proyecto...")
     tech = input("¿Tecnologías y lenguajes?: ")
     rules = input("¿Reglas de estilo o diseño? (opcional): ")
-    
-    total_files = count_total_files()
-    
-    if total_files > 18:
-        estructura = get_structure(only_dirs=True)
-        estructura += f"\n\n[Número total de archivos: {total_files} (Se muestran solo directorios por superar el límite de 18)]"
-        estructura += "\nSi tienes dudas sobre el contenido de algún directorio, usa 'dev-agent-context ./directorio/' para obtener el contenido."
-    else:
-        estructura = get_structure(only_dirs=False)
+        
+    estructura = ''
 
     prompt_base = (
         "Actúa como un agente de desarrollo por línea de comandos.\n"
