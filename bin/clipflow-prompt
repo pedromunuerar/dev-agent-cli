@@ -42,8 +42,7 @@ def get_structure(path="."):
                     lines.append(f"{indent}    {f}")
     estructura = "\n".join(lines)
     if only_dirs:
-        estructura += f"\n\n[Número total de archivos: {total_files} (Se muestran solo directorios por superar el límite de 18)]"
-        estructura += "\nSi tienes dudas sobre el contenido de algún directorio, usa 'dev-agent-context ./directorio/' para obtener el contenido."
+        estructura += "\nSi tienes dudas sobre el contenido de algún directorio, usa 'clipflow-context ./directorio/' para obtener el contenido."
     return estructura
 
 def copy_to_clipboard(text):
@@ -72,7 +71,7 @@ def copy_to_clipboard(text):
 
 def main():
     if not os.path.exists(".agent-context.json"):
-        print("❌ Error: No existe .agent-context.json. Ejecuta primero dev-agent-init.")
+        print("❌ Error: No existe .agent-context.json. Ejecuta primero clipflow-init.")
         sys.exit(1)
         
     with open(".agent-context.json", "r", encoding="utf-8") as f:

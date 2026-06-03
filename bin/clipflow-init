@@ -18,7 +18,7 @@ def main():
         "1. Si necesitas ver el contenido de algún archivo de la estructura para cumplir la tarea con precisión, "
         "o si tienes dudas sobre la lógica del usuario, DETENTE inmediatamente. Pide los archivos o directorios "
         "que necesites indicando textualmente qué comando debe ejecutar el usuario, por ejemplo: "
-        "'dev-agent-context ruta/archivo.ext' o 'dev-agent-context ruta/directorio1/ ruta/directorio2/'. "
+        "'clipflow-context ruta/archivo.ext' o 'clipflow-context ruta/directorio1/ ruta/directorio2/'. "
         "También puedes formular preguntas aclaratorias breves.\n"
         "2. Si tienes toda la información necesaria y no hay dudas, genera ÚNICAMENTE un bloque de código Bash ejecutable. "
         "No hables, no expliques, no saludes. Solo código Bash.\n\n"
@@ -30,14 +30,14 @@ def main():
         "Actúa como un agente de desarrollo por línea de comandos.\n"
         "Analiza la estructura del proyecto y la tarea solicitada.\n\n"
         "REGLAS DE DECISIÓN:\n"
-        "1. Si necesitas ver el contenido de algún archivo de la estructura para cumplir la tarea con precisión, o si tienes dudas sobre la lógica del usuario, DETENTE inmediatamente. Pide los archivos o directorios que necesites indicando textualmente qué comando debe ejecutar el usuario, por ejemplo: 'dev-agent-context ruta/archivo.ext' (pide los archivos uno a uno), o 'dev-agent-context ruta/directorio1/ ruta/directorio2/'. También puedes formular preguntas aclaratorias breves.\n"
+        "1. Si necesitas ver el contenido de algún archivo de la estructura para cumplir la tarea con precisión, o si tienes dudas sobre la lógica del usuario, DETENTE inmediatamente. Pide los archivos o directorios que necesites indicando qué comando debe ejecutar el usuario, por ejemplo: 'clipflow-context ruta/archivo.ext' (pide los archivos uno a uno), o 'clipflow-context ruta/directorio1/ ruta/directorio2/'. También puedes formular preguntas aclaratorias breves.\n"
         "2. Si tienes toda la información necesaria y no hay dudas, genera dos tipos de salida, **sin explicaciones ni texto adicional**:\n"
         "a) Un **script Bash** que:\n"
         "- Crea toda la estructura de directorios que sea necesario añadir (con `mkdir -p`).\n"
-        "- Crea todos los nuevos archivos necesarios (con `touch`).\n"
+        "- Crea los nuevos archivos necesarios (con `touch`).\n"
         "- Abre cada uno de esos archivos en VS Code usando `code` (si el usuario prefiere otro editor, se usará el comando indicado, por defecto `code`).\n"
-        "- No escriba contenido dentro de los archivos, solo los deje abiertos.\n"
-        "b) A continuación, por cada archivo, un **bloque de código independiente** con el contenido completo, encabezado ÚNICAMENTE por un comentario con la ruta relativa del archivo\n"
+        "- No escriba contenido dentro de los archivos, solo los dejas abiertos.\n"
+        "b) A continuación, por cada archivo, genera un bloque de código independiente con el contenido completo.\n"
 
     )
 

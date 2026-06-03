@@ -26,7 +26,7 @@ def copy_to_clipboard(text):
 
 def main():
     if len(sys.argv) < 2:
-        print("❌ Uso: dev-agent-context <archivo1> o <directorio1> ...")
+        print("❌ Uso: clipflow-context <archivo1> o <directorio1> ...")
         sys.exit(1)
 
     output = []

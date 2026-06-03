@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 set -e
 
-echo "🤖 Instalando Dev-Agent CLI..."
+echo "🤖 Instalando Clipflow CLI..."
 
 INSTALL_DIR="$HOME/.local/bin"
 mkdir -p "$INSTALL_DIR"
 
 # Copiar ejecutables
-cp bin/dev-agent-init "$INSTALL_DIR/"
-cp bin/dev-agent-prompt "$INSTALL_DIR/"
-cp bin/dev-agent-context "$INSTALL_DIR/"
+cp bin/clipflow-init "$INSTALL_DIR/"
+cp bin/clipflow-prompt "$INSTALL_DIR/"
+cp bin/clipflow-context "$INSTALL_DIR/"
 
 # Asegurar permisos de ejecución
-chmod +x "$INSTALL_DIR"/dev-agent-*
+chmod +x "$INSTALL_DIR"/clipflow-*
 
 echo "===================================================="
 echo "✅ ¡Instalación completada con éxito!"
